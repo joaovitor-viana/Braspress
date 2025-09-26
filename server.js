@@ -44,10 +44,10 @@ app.post('/frete', async (req, res) => {
       });
     });
 
-    // Payload Braspress
+    // Payload para Braspress
     const payloadBraspress = {
       cnpjRemetente: CNPJ_REMETENTE,
-      cnpjDestinatario: '00000000000', // Placeholder, a Yampi envia o CNPJ real depois
+      cnpjDestinatario: '00000000000', // Yampi envia o CNPJ real depois
       modal: 'R',
       tipoFrete: '1',
       cepOrigem: CEP_ORIGEM,
@@ -70,16 +70,20 @@ app.post('/frete', async (req, res) => {
 
     const dadosBraspress = await resposta.json();
 
+    // Mapear campos corretos da Braspress
+    const totalFrete = Number(dadosBraspress.frete || 0);
+    const prazo = Number(dadosBraspress.prazo || 0);
+
     // Retorno para Yampi
     const retornoYampi = {
       quotes: [
         {
           name: 'Braspress',
           service: 'Rodoviário',
-          price: dadosBraspress.totalFrete || 0,
-          days: dadosBraspress.prazo || 0,
+          price: totalFrete,
+          days: prazo,
           quote_id: 1,
-          free_shipment: false
+          free_shipment: totalFrete === 0
         }
       ]
     };
