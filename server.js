@@ -19,21 +19,15 @@ app.post('/frete', async (req, res) => {
   console.log('REQ BODY:', JSON.stringify(req.body, null, 2));
 
   try {
-    // Aceita skus ou items
     const skus = req.body.skus || req.body.items;
 
-    if (!skus) {
+    if (!skus || !Array.isArray(skus)) {
       return res.status(400).json({ error: 'Campo skus ou items ausente ou inválido' });
-    }
-
-    if (!Array.isArray(skus)) {
-      return res.status(400).json({ error: 'Campo skus ou items deve ser um array' });
     }
 
     const cepDestino = req.body.zipcode;
     const valorMercadoria = req.body.amount;
 
-    // Calcular peso total, volumes e cubagem
     let pesoTotal = 0;
     let volumes = 0;
     let cubagem = [];
@@ -53,7 +47,7 @@ app.post('/frete', async (req, res) => {
     // Payload Braspress
     const payloadBraspress = {
       cnpjRemetente: CNPJ_REMETENTE,
-      cnpjDestinatario: '00000000000', // Placeholder, Yampi envia CNPJ real depois
+      cnpjDestinatario: '00000000000', // Placeholder, a Yampi envia o CNPJ real depois
       modal: 'R',
       tipoFrete: '1',
       cepOrigem: CEP_ORIGEM,
@@ -76,7 +70,7 @@ app.post('/frete', async (req, res) => {
 
     const dadosBraspress = await resposta.json();
 
-    // Resposta para Yampi
+    // Retorno para Yampi
     const retornoYampi = {
       quotes: [
         {
