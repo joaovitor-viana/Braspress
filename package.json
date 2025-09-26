@@ -1,12 +1,17 @@
 {
   "name": "braspress-api",
   "version": "1.0.0",
+  "description": "API para integrar Yampi com Braspress",
   "main": "server.js",
+  "type": "module",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.19.2",
     "node-fetch": "^3.3.2"
+  },
+  "engines": {
+    "node": "22.x"
   }
 }
