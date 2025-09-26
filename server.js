@@ -3,6 +3,12 @@ import fetch from 'node-fetch';
 
 const app = express();
 app.use(express.json());
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError) {
+    return res.status(400).json({ error: 'JSON inválido' });
+  }
+  next();
+});
 
 // CONFIGURAÇÕES FIXAS
 const CNPJ_REMETENTE = 'SEU_CNPJ';
