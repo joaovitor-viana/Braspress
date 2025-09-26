@@ -3,72 +3,63 @@ import fetch from 'node-fetch';
 
 const app = express();
 app.use(express.json());
-app.use((err, req, res, next) => {
-  if (err instanceof SyntaxError) {
-    return res.status(400).json({ error: 'JSON inválido' });
-  }
-  next();
-});
 
-// CONFIGURAÇÕES FIXAS
-const CNPJ_REMETENTE = 'SEU_CNPJ';
-const CEP_ORIGEM = 'SEU_CEP_DE_SAIDA';
-const BRASPRESS_USER = 'SEU_USUARIO';
-const BRASPRESS_PASS = 'SUA_SENHA';
+// ----------------------
+// CONFIGURAÇÕES VIA VARIÁVEIS DE AMBIENTE
+// ----------------------
+const CNPJ_REMETENTE = process.env.CNPJ_REMETENTE || 'SEU_CNPJ';
+const CEP_ORIGEM = process.env.CEP_ORIGEM || 'SEU_CEP_DE_SAIDA';
+const BRASPRESS_USER = process.env.BRASPRESS_USER || 'SEU_USUARIO';
+const BRASPRESS_PASS = process.env.BRASPRESS_PASS || 'SUA_SENHA';
 
-// ENDPOINT que a YAMPI vai chamar
+// ----------------------
+// ROTA DE FRETE
+// ----------------------
 app.post('/frete', async (req, res) => {
-    // 👇 ADICIONE ESTA LINHA AQUI
-  console.log('REQ BODY:', req.body);
+  console.log('REQ BODY:', req.body); // <-- linha de debug
 
-  const skus = req.body.skus;
-
-  skus.forEach(item => {
-    // seu processamento
-  });
-
-  res.json({ ok: true });
-});
-
-app.listen(3000, () => console.log('Servidor rodando...'));
   try {
-    // 1) Ler dados que Yampi envia
-    const dados = req.body;
-    const cepDestino = dados.zipcode;
-    const valorMercadoria = dados.amount;
-    const skus = dados.skus;
+    // Suportar tanto skus quanto items
+    const skus = req.body.skus || req.body.items;
+    if (!Array.isArray(skus) || skus.length === 0) {
+      return res.status(400).json({ error: 'Campo skus ou items ausente ou inválido' });
+    }
 
-    // 2) Converter dados para formato da Braspress
+    const cepDestino = req.body.zipcode;
+    const valorMercadoria = req.body.amount;
+
+    // Calcular peso total, volumes e cubagem
     let pesoTotal = 0;
     let volumes = 0;
     let cubagem = [];
 
     skus.forEach(item => {
-      pesoTotal += item.weight * item.quantity;
-      volumes += item.quantity;
+      pesoTotal += (item.weight || 0) * (item.quantity || 1);
+      volumes += item.quantity || 1;
 
       cubagem.push({
-        altura: item.height / 100,       // cm → m
-        largura: item.width / 100,
-        comprimento: item.length / 100,
-        volumes: item.quantity
+        altura: (item.height || 0) / 100,    // cm → m
+        largura: (item.width || 0) / 100,
+        comprimento: (item.length || 0) / 100,
+        volumes: item.quantity || 1
       });
     });
 
+    // Montar payload para Braspress
     const payloadBraspress = {
       cnpjRemetente: CNPJ_REMETENTE,
-      cnpjDestinatario: '00000000000',   // pode ser fixo se não exigir CNPJ do cliente
+      cnpjDestinatario: '00000000000', // placeholder
       modal: 'R',
       tipoFrete: '1',
       cepOrigem: CEP_ORIGEM,
-      cepDestino: cepDestino,
+      cepDestino,
       vlrMercadoria: valorMercadoria,
       peso: pesoTotal,
       volumes: volumes,
-      cubagem: cubagem
+      cubagem
     };
 
-    // 3) Chamar API da Braspress
+    // Chamar Braspress
     const resposta = await fetch('https://api.braspress.com/v1/cotacao/calcular/json', {
       method: 'POST',
       headers: {
@@ -80,14 +71,14 @@ app.listen(3000, () => console.log('Servidor rodando...'));
 
     const dadosBraspress = await resposta.json();
 
-    // 4) Montar resposta no formato que Yampi espera
+    // Responder para Yampi
     const retornoYampi = {
       quotes: [
         {
           name: 'Braspress',
           service: 'Rodoviário',
-          price: dadosBraspress.totalFrete,
-          days: dadosBraspress.prazo,
+          price: dadosBraspress.totalFrete || 0,
+          days: dadosBraspress.prazo || 0,
           quote_id: 1,
           free_shipment: false
         }
@@ -97,10 +88,12 @@ app.listen(3000, () => console.log('Servidor rodando...'));
     res.json(retornoYampi);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Erro ao calcular frete' });
+    res.status(500).json({ error: 'Erro interno ao calcular frete' });
   }
 });
 
-// Iniciar servidor
-const PORT = 3000;
+// ----------------------
+// INICIAR SERVIDOR
+// ----------------------
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`API de frete rodando na porta ${PORT}`));
