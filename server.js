@@ -106,7 +106,6 @@ app.listen(PORT, () => console.log(`API de frete rodando na porta ${PORT}`));   
         comprimento: (item.length || 0) / 100,
         volumes: item.quantity || 1
       });
-    });
 
     // Montar payload para Braspress
     const payloadBraspress = {
