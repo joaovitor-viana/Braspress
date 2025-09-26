@@ -18,6 +18,19 @@ const BRASPRESS_PASS = 'SUA_SENHA';
 
 // ENDPOINT que a YAMPI vai chamar
 app.post('/frete', async (req, res) => {
+    // 👇 ADICIONE ESTA LINHA AQUI
+  console.log('REQ BODY:', req.body);
+
+  const skus = req.body.skus;
+
+  skus.forEach(item => {
+    // seu processamento
+  });
+
+  res.json({ ok: true });
+});
+
+app.listen(3000, () => console.log('Servidor rodando...'));
   try {
     // 1) Ler dados que Yampi envia
     const dados = req.body;
