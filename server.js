@@ -8,7 +8,7 @@ app.use(express.json());
 // CREDENCIAIS BRASPRESS FIXAS
 // ----------------------
 const CNPJ_REMETENTE = '58335466000128';
-const CEP_ORIGEM = '88814-552'; // CEP fixo
+const CEP_ORIGEM = '88814552'; // CEP sem hífen
 const BRASPRESS_USER = '58335466000128_PRD';
 const BRASPRESS_PASS = 'xr7BASLCz30k94jJ';
 
@@ -25,7 +25,7 @@ app.post('/frete', async (req, res) => {
       return res.status(400).json({ error: 'Campo skus ou items ausente ou inválido' });
     }
 
-    const cepDestino = req.body.zipcode;
+    const cepDestino = (req.body.zipcode || '').replace(/\D/g, ''); // remove qualquer caractere não numérico
     const valorMercadoria = req.body.amount;
 
     let pesoTotal = 0;
