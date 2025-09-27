@@ -8,7 +8,7 @@ app.use(express.json());
 // CREDENCIAIS BRASPRESS FIXAS
 // ----------------------
 const CNPJ_REMETENTE = '58335466000128';
-const CEP_ORIGEM = '88814552'; // CEP sem hífen
+const CEP_ORIGEM = '88814552'; // CEP fixo
 const BRASPRESS_USER = '58335466000128_PRD';
 const BRASPRESS_PASS = 'xr7BASLCz30k94jJ';
 
@@ -25,8 +25,14 @@ app.post('/frete', async (req, res) => {
       return res.status(400).json({ error: 'Campo skus ou items ausente ou inválido' });
     }
 
-    const cepDestino = (req.body.zipcode || '').replace(/\D/g, ''); // remove qualquer caractere não numérico
+    const cepDestino = (req.body.zipcode || '').replace(/\D/g, ''); // apenas números
     const valorMercadoria = req.body.amount;
+
+    // Pegando CPF do cliente
+    const cpfCliente = req.body.cart?.customer?.document?.replace(/\D/g, '');
+    if (!cpfCliente) {
+      return res.status(400).json({ error: 'CPF do cliente ausente' });
+    }
 
     let pesoTotal = 0;
     let volumes = 0;
@@ -47,7 +53,7 @@ app.post('/frete', async (req, res) => {
     // Payload para Braspress
     const payloadBraspress = {
       cnpjRemetente: CNPJ_REMETENTE,
-      cnpjDestinatario: '00000000000', // Yampi envia o CNPJ real depois
+      cnpjDestinatario: cpfCliente,
       modal: 'R',
       tipoFrete: '1',
       cepOrigem: CEP_ORIGEM,
