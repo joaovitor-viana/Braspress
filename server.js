@@ -5,12 +5,12 @@ const app = express();
 app.use(express.json());
 
 // ----------------------
-// VARIÁVEIS DE AMBIENTE
+// CREDENCIAIS BRASPRESS FIXAS
 // ----------------------
-const CNPJ_REMETENTE = process.env.CNPJ_REMETENTE || '00000000000000'; // coloque seu CNPJ real
-const CEP_ORIGEM = '88814-552'; // CEP padrão fixo
-const BRASPRESS_USER = process.env.BRASPRESS_USER;
-const BRASPRESS_PASS = process.env.BRASPRESS_PASS;
+const CNPJ_REMETENTE = '58335466000128';
+const CEP_ORIGEM = '88814-552'; // CEP fixo
+const BRASPRESS_USER = '58335466000128_PRD';
+const BRASPRESS_PASS = 'xr7BASLCz30k94jJ';
 
 // ----------------------
 // ROTA DE FRETE
