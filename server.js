@@ -78,9 +78,8 @@ app.post('/frete', async (req, res) => {
     console.log('Resposta Braspress:', JSON.stringify(dadosBraspress, null, 2));
 
     // Mapear campos corretos da Braspress
-    const cotacao = dadosBraspress.cotacoes?.[0] || {};
-    const totalFrete = Number(cotacao.vlr_frete || 0);
-    const prazo = Number(cotacao.prazo || 0);
+    const totalFrete = Number(dadosBraspress.totalFrete || 0);
+    const prazo = Number(dadosBraspress.prazo || 0);
 
     // Retorno para Yampi
     const retornoYampi = {
