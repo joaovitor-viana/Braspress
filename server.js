@@ -7,8 +7,8 @@ app.use(express.json());
 // ----------------------
 // VARIÁVEIS DE AMBIENTE
 // ----------------------
-const CNPJ_REMETENTE = process.env.CNPJ_REMETENTE;
-const CEP_ORIGEM = process.env.CEP_ORIGEM;
+const CNPJ_REMETENTE = process.env.CNPJ_REMETENTE || '00000000000000'; // coloque seu CNPJ real
+const CEP_ORIGEM = '88814-552'; // CEP padrão fixo
 const BRASPRESS_USER = process.env.BRASPRESS_USER;
 const BRASPRESS_PASS = process.env.BRASPRESS_PASS;
 
@@ -69,10 +69,12 @@ app.post('/frete', async (req, res) => {
     });
 
     const dadosBraspress = await resposta.json();
+    console.log('Resposta Braspress:', JSON.stringify(dadosBraspress, null, 2));
 
     // Mapear campos corretos da Braspress
-    const totalFrete = Number(dadosBraspress.frete || 0);
-    const prazo = Number(dadosBraspress.prazo || 0);
+    const cotacao = dadosBraspress.cotacoes?.[0] || {};
+    const totalFrete = Number(cotacao.vlr_frete || 0);
+    const prazo = Number(cotacao.prazo || 0);
 
     // Retorno para Yampi
     const retornoYampi = {
